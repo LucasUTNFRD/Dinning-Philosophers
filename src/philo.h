@@ -2,9 +2,7 @@
 #define PHILO_H
 
 /*
- *
  * This file contains Structure for the simulation
- *
  */
 
 #include <pthread.h>
@@ -51,5 +49,9 @@ struct s_dinner {
 bool can_prepare_dinner(t_dinner *dinner, int argc, char **argv);
 
 void dinner_init(t_dinner *dinner);
+
+void dinner_start_simulation(t_dinner *dinner);
+
+void dinner_end_simulation(t_dinner *dinner);
 
 #endif // !PHILO_H
