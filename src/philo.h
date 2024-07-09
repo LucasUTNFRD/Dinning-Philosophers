@@ -8,20 +8,18 @@
 #include <pthread.h>
 #include <stdbool.h>
 
-#define PHILO_MAX 5
-
 typedef struct s_dinner
     t_dinner; // re-declaration to avoid conlfict insider t_philosopher
 
 typedef long time_t;
 
 typedef struct s_rules {
-  time_t start_time;
-  unsigned philo_count;
+  // time_t start_time;
+  int philo_count;
   time_t lifespan;
   time_t dining_duration;
   time_t rest_duration;
-  unsigned min_meals;
+  int min_meals;
 } t_rules;
 
 typedef struct s_fork {
@@ -43,12 +41,13 @@ typedef struct s_philosopher {
 
 struct s_dinner {
   t_rules *rules;
-  t_philosopher philo[PHILO_MAX];
+  t_philosopher *philo;
+  t_fork *forks;
 };
 
 bool can_prepare_dinner(t_dinner *dinner, int argc, char **argv);
 
-void dinner_init(t_dinner *dinner);
+void dinner_init(t_dinner *dinner, int argc, char **argv);
 
 void dinner_start_simulation(t_dinner *dinner);
 
