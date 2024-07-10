@@ -21,9 +21,20 @@ static void fork_init(t_dinner *dinner) {
     dinner->forks[i].fork_id = i;
   }
 }
+/*
+ * EXPLANATION
+ *
+ */
+static void assing_fork(t_philosopher *philo, t_fork *forks, int philo_pos) {
 
-static void assing_fork(t_philosopher *philo, t_fork *forks, int i) {
-  // here is were we implement our approach to avoid deadlock
+  int philo_nbr = philo->dinner->rules->philo_count;
+
+  philo->left_fork = &forks[(philo_pos + 1) % philo_nbr];
+  philo->right_fork = &forks[philo_pos];
+  if (philo->id % 2 == 0) {
+    philo->left_fork = &forks[philo_pos];
+    philo->right_fork = &forks[(philo_pos + 1) % philo_nbr];
+  }
 }
 
 static void philo_init(t_dinner *dinner) {

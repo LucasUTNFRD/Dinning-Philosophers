@@ -7,6 +7,9 @@
 
 #include <pthread.h>
 #include <stdbool.h>
+#include <sys/time.h>
+
+#define MIN_MEAL_NOT_SET 3
 
 typedef struct s_dinner
     t_dinner; // re-declaration to avoid conlfict insider t_philosopher
@@ -20,6 +23,7 @@ typedef struct s_rules {
   time_t dining_duration;
   time_t rest_duration;
   int min_meals;
+  time_t start_time;
 } t_rules;
 
 typedef struct s_fork {
@@ -48,6 +52,8 @@ struct s_dinner {
 bool can_prepare_dinner(t_dinner *dinner, int argc, char **argv);
 
 void dinner_init(t_dinner *dinner, int argc, char **argv);
+
+time_t get_time_in_ms(void);
 
 void dinner_start_simulation(t_dinner *dinner);
 

@@ -10,7 +10,12 @@
 int main(int argc, char **argv) {
   t_dinner dinner;
   if (can_prepare_dinner(&dinner, argc, argv)) {
+
     dinner_init(&dinner, argc, argv);
+
+    dinner_start_simulation(&dinner); // TODO
+
+    dinner_end_simulation(&dinner);
   } else {
     exit(1);
   }
