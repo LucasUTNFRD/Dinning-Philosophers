@@ -1,4 +1,4 @@
-#include "src/philo.h"
+#include "philo.h"
 #include <stdio.h>
 #include <unistd.h>
 
@@ -17,7 +17,8 @@ int main(int argc, char **argv) {
 
     dinner_end_simulation(&dinner);
   } else {
-    exit(1);
+    // exit(1);
+    printf("error\n");
   }
   return 0;
 }

@@ -1,5 +1,6 @@
 #include "philo.h"
 #include <stdlib.h>
+#include <time.h>
 
 void set_dinner_rules(t_dinner *dinner, int argc, char **argv) {
   // set_dinner_start_time(dinner);
@@ -48,12 +49,15 @@ static void philo_init(t_dinner *dinner) {
     philo->full = false;
     philo->dinner = dinner;
     philo->meal_counter = 0;
-
+    philo->last_meal_time = get_time_in_ms();
+    pthread_mutex_init(&philo->last_meal_time_mutex, NULL);
+    pthread_mutex_init(&philo->meal_counter_mutex, NULL);
     assing_fork(philo, dinner->forks, i);
   }
 }
 
 void dinner_init(t_dinner *dinner, int argc, char **argv) {
+  dinner->exit_status = SUCCESS;
   set_dinner_rules(dinner, argc, argv);
   dinner->philo = malloc(sizeof(t_philosopher) * dinner->rules->philo_count);
   dinner->forks = malloc(sizeof(t_fork) * dinner->rules->philo_count);
