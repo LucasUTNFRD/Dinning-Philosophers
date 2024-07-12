@@ -32,9 +32,8 @@ static void print_in_required_format(t_philosopher *philo, char *action) {
 }
 
 void print_philo_status(t_philosopher *philo, int status) {
-  // if (check_stop_condition_safely(&philo->dinner->stop_mutex,
-  // &philo->dinner->stop))
-  // return;
+  if (check_stop_condition(&philo->dinner->stop_mutex, &philo->dinner->stop))
+    return;
   switch (status) {
   case DEAD:
     print_in_required_format(philo, MSG_DEAD);

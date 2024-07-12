@@ -7,8 +7,10 @@
 
 #include <pthread.h>
 #include <stdbool.h>
-#include <sys/time.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <sys/time.h>
+#include <unistd.h>
 
 #define MIN_MEAL_NOT_SET 3
 
@@ -107,4 +109,5 @@ void dinner_end_simulation(t_dinner *dinner);
 
 void print_philo_status(t_philosopher *philo, int status);
 
+bool check_stop_condition(pthread_mutex_t *mutex, bool *stop);
 #endif // !PHILO_H

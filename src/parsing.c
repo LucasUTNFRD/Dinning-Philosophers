@@ -15,7 +15,6 @@ static bool check_str_to_int(const char *str) {
 }
 
 bool can_prepare_dinner(t_dinner *dinner, int argc, char **argv) {
-  printf("ok prepare dinner\n");
   if (argc == 5 || argc == 6) {
     // check if args can be converted to number
     for (int i = 1; i < argc; i++) {

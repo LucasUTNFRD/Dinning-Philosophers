@@ -7,12 +7,31 @@
  * we make all threads start at the same time. by getting the current time
  * and wating until the current thread reaches the start_time
  */
+
 void wait_all_threads(time_t start_time) {
   while (get_time_in_ms() < start_time) {
     continue;
   }
 }
 
+static void update_stop_condition_safely(pthread_mutex_t *mutex, bool *stop,
+                                         bool new_value) {
+  pthread_mutex_lock(mutex);
+  *stop = new_value;
+  pthread_mutex_unlock(mutex);
+}
+
+static bool died_from_starvation(t_philosopher *philo) {
+  if (get_time_in_ms() - philo->last_meal_time >=
+      philo->dinner->rules->lifespan) {
+    print_philo_status(philo, DEAD);
+    update_stop_condition_safely(&philo->dinner->stop_mutex,
+                                 &philo->dinner->stop, true);
+    pthread_mutex_unlock(&philo->dinner->stop_mutex);
+    return true;
+  }
+  return false;
+}
 bool check_stop_condition(pthread_mutex_t *mutex, bool *stop) {
   bool result;
   pthread_mutex_lock(mutex);   // Lock the mutex to ensure thread safety
@@ -87,8 +106,21 @@ void eat(t_philosopher *philo) {
   release_forks(philo);
 }
 
-void rest(t_philosopher *philo) { print_philo_status(philo, SLEEPING); }
-void think(t_philosopher *philo) { print_philo_status(philo, THINKING); }
+void life_check_and_wait(t_philosopher *philo, time_t wait_time) {
+  if (!died_from_starvation(philo)) {
+    return;
+  }
+  usleep(wait_time);
+}
+
+void rest(t_philosopher *philo) {
+  print_philo_status(philo, SLEEPING);
+  life_check_and_wait(philo, philo->dinner->rules->rest_duration);
+}
+void think(t_philosopher *philo) {
+  print_philo_status(philo, THINKING);
+  life_check_and_wait(philo, philo->dinner->rules->rest_duration);
+}
 
 void *dinner_simulation(void *data) {
   t_philosopher *philo = (t_philosopher *)data;
@@ -105,25 +137,6 @@ void *dinner_simulation(void *data) {
   }
 
   return (NULL);
-}
-
-static void update_stop_condition_safely(pthread_mutex_t *mutex, bool *stop,
-                                         bool new_value) {
-  pthread_mutex_lock(mutex);
-  *stop = new_value;
-  pthread_mutex_unlock(mutex);
-}
-
-static bool died_from_starvation(t_philosopher *philo) {
-  if (get_time_in_ms() - philo->last_meal_time >=
-      philo->dinner->rules->lifespan) {
-    print_philo_status(philo, DEAD);
-    update_stop_condition_safely(&philo->dinner->stop_mutex,
-                                 &philo->dinner->stop, true);
-    pthread_mutex_unlock(&philo->dinner->stop_mutex);
-    return true;
-  }
-  return false;
 }
 
 static bool is_full(t_philosopher *philo) {
@@ -176,7 +189,12 @@ void dinner_start_simulation(t_dinner *dinner) {
 
 void dinner_end_simulation(t_dinner *dinner) {
   int i;
+  pthread_mutex_destroy(&dinner->stop_mutex);
+  free(dinner->philo);
+  free(dinner->forks);
+  free(dinner->rules);
   // join philo threads
+
   for (i = 0; i < dinner->rules->philo_count; i++) {
     pthread_join(dinner->philo[i].thread, NULL);
   }
@@ -184,5 +202,10 @@ void dinner_end_simulation(t_dinner *dinner) {
   // Join monitor thread
   if (dinner->rules->philo_count > 1) {
     pthread_join(dinner->supervisor, NULL);
+  }
+  for (i = 0; i < dinner->rules->philo_count; i++) {
+    pthread_mutex_destroy(&dinner->philo[i].meal_counter_mutex);
+    pthread_mutex_destroy(&dinner->philo[i].last_meal_time_mutex);
+    pthread_mutex_destroy(&dinner->forks[i].fork);
   }
 }

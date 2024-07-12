@@ -4,6 +4,7 @@
 
 void set_dinner_rules(t_dinner *dinner, int argc, char **argv) {
   // set_dinner_start_time(dinner);
+  dinner->rules = malloc(sizeof(t_rules));
   dinner->rules->philo_count = atoi(argv[1]);
   dinner->rules->lifespan = atoi(argv[2]);
   dinner->rules->dining_duration = atoi(argv[3]);
@@ -13,6 +14,9 @@ void set_dinner_rules(t_dinner *dinner, int argc, char **argv) {
   } else {
     dinner->rules->min_meals = MIN_MEAL_NOT_SET;
   }
+
+  pthread_mutex_init(&dinner->stop_mutex, NULL);
+  dinner->stop = false;
 }
 
 static void fork_init(t_dinner *dinner) {
