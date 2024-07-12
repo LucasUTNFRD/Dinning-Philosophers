@@ -50,6 +50,13 @@ unsigned int check_times_eaten_safely(pthread_mutex_t *mutex,
   return (after_check);
 }
 
+void life_check_and_wait(t_philosopher *philo, time_t wait_time) {
+  if (!died_from_starvation(philo)) {
+    return;
+  }
+  usleep(wait_time);
+}
+
 time_t check_last_meal_time_safely(pthread_mutex_t *mutex,
                                    time_t *last_meal_time) {
   time_t after_check;
@@ -85,6 +92,7 @@ void update_times_eaten_safely(pthread_mutex_t *mutex,
                                unsigned int new_value) {
   pthread_mutex_lock(mutex);
   *times_eaten = new_value;
+  printf("time eaten:%d\n", *times_eaten);
   pthread_mutex_unlock(mutex);
 }
 
@@ -98,19 +106,12 @@ void update_last_meal_time_safely(pthread_mutex_t *mutex,
 void eat(t_philosopher *philo) {
   take_forks(philo);
   print_philo_status(philo, EATING);
-  // TODO: Update times eaten and last meal time safely
+  life_check_and_wait(philo, philo->dinner->rules->dining_duration);
   update_times_eaten_safely(&philo->meal_counter_mutex, &philo->meal_counter,
-                            philo->meal_counter++);
+                            philo->meal_counter + 1);
   update_last_meal_time_safely(&philo->last_meal_time_mutex,
                                &philo->last_meal_time, get_time_in_ms());
   release_forks(philo);
-}
-
-void life_check_and_wait(t_philosopher *philo, time_t wait_time) {
-  if (!died_from_starvation(philo)) {
-    return;
-  }
-  usleep(wait_time);
 }
 
 void rest(t_philosopher *philo) {
@@ -164,10 +165,9 @@ void *monitor_routine(void *data) {
     while (++i < dinner->rules->philo_count) {
       philo = dinner->philo + i;
       pthread_mutex_lock(&philo->last_meal_time_mutex);
-      if (died_from_starvation(philo))
+      if (died_from_starvation(philo) || is_full(philo)) {
         return (NULL);
-      if (is_full(philo))
-        return (NULL);
+      }
       pthread_mutex_unlock(&philo->last_meal_time_mutex);
     }
   }
@@ -189,17 +189,9 @@ void dinner_start_simulation(t_dinner *dinner) {
 
 void dinner_end_simulation(t_dinner *dinner) {
   int i;
-  pthread_mutex_destroy(&dinner->stop_mutex);
-  free(dinner->philo);
-  free(dinner->forks);
-  free(dinner->rules);
-  // join philo threads
-
   for (i = 0; i < dinner->rules->philo_count; i++) {
     pthread_join(dinner->philo[i].thread, NULL);
   }
-
-  // Join monitor thread
   if (dinner->rules->philo_count > 1) {
     pthread_join(dinner->supervisor, NULL);
   }
@@ -208,4 +200,8 @@ void dinner_end_simulation(t_dinner *dinner) {
     pthread_mutex_destroy(&dinner->philo[i].last_meal_time_mutex);
     pthread_mutex_destroy(&dinner->forks[i].fork);
   }
+  pthread_mutex_destroy(&dinner->stop_mutex);
+  free(dinner->philo);
+  free(dinner->forks);
+  free(dinner->rules);
 }

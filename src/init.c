@@ -3,8 +3,8 @@
 #include <time.h>
 
 void set_dinner_rules(t_dinner *dinner, int argc, char **argv) {
-  // set_dinner_start_time(dinner);
   dinner->rules = malloc(sizeof(t_rules));
+  dinner->rules->start_time = get_time_in_ms();
   dinner->rules->philo_count = atoi(argv[1]);
   dinner->rules->lifespan = atoi(argv[2]);
   dinner->rules->dining_duration = atoi(argv[3]);
