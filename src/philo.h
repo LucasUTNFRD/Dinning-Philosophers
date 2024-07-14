@@ -13,6 +13,7 @@
 #include <unistd.h>
 
 #define MIN_MEAL_NOT_SET 3
+#define PHILO_MAX 5
 
 // ERROR MESAGES
 #define MSG_NUM_ARGS "Incorrect number of arguments."
@@ -62,16 +63,12 @@ typedef struct s_rules {
   time_t start_time;
 } t_rules;
 
-typedef struct s_fork {
-  pthread_mutex_t fork;
-  int fork_id;
-} t_fork;
-
 typedef struct s_philosopher {
   int id;
   pthread_t thread; // philosopher are represented as threads
-  t_fork *left_fork;
-  t_fork *right_fork;
+                    // t_fork *left_fork;
+                    // t_fork *right_fork;
+  unsigned int forks[2];
   t_dinner *dinner;
 
   bool full; //?
@@ -86,8 +83,8 @@ typedef struct s_philosopher {
 
 struct s_dinner {
   t_rules *rules;
-  t_philosopher *philo;
-  t_fork *forks;
+  t_philosopher *philos;
+  pthread_mutex_t forks[PHILO_MAX];
   pthread_mutex_t print_mutex; // avoid race conitons in printing statuses
   int exit_status;
 
@@ -109,5 +106,24 @@ void dinner_end_simulation(t_dinner *dinner);
 
 void print_philo_status(t_philosopher *philo, int status);
 
-bool check_stop_condition(pthread_mutex_t *mutex, bool *stop);
+void report_and_set_error(t_dinner *dinner, int code, char *msg);
+
+bool check_stop_condition_safely(pthread_mutex_t *mutex, bool *stop_flag);
+
+unsigned int check_times_eaten_safely(pthread_mutex_t *mutex,
+                                      unsigned int *times_eaten);
+
+time_t check_last_meal_time_safely(pthread_mutex_t *mutex,
+                                   time_t *last_meal_time);
+
+void update_stop_condition_safely(pthread_mutex_t *mutex, bool *end_flag,
+                                  bool new_value);
+
+void update_times_eaten_safely(pthread_mutex_t *mutex,
+                               unsigned int *times_eaten,
+                               unsigned int new_value);
+
+void update_last_meal_time_safely(pthread_mutex_t *mutex,
+                                  time_t *last_meal_time, time_t new_value);
+
 #endif // !PHILO_H

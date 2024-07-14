@@ -17,8 +17,7 @@ int main(int argc, char **argv) {
 
     dinner_end_simulation(&dinner);
   } else {
-    // exit(1);
-    printf("error\n");
+    exit(1);
   }
   return 0;
 }
